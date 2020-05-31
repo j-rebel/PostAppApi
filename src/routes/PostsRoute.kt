@@ -87,5 +87,27 @@ fun Route.posts(db: Repository) {
                 call.respond(HttpStatusCode.BadRequest, "Problems getting Posts")
             }
         }
+
+/*        delete<PostRoute> {
+            val postsParameters = call.receive<Parameters>()
+            if (!postsParameters.contains("id")) {
+                return@delete call.respond(HttpStatusCode.BadRequest, "Missing Post Id")
+            }
+            val postId =
+                postsParameters["id"] ?: return@delete call.respond(HttpStatusCode.BadRequest, "Missing Post Id")
+            val user = call.sessions.get<MySession>()?.let { db.findUser(it.userId) }
+            if (user == null) {
+                call.respond(HttpStatusCode.BadRequest, "Problems retrieving User")
+                return@delete
+            }
+
+            try {
+                db.deletePost(user.userId, postId.toLong())
+                call.respond(HttpStatusCode.OK)
+            } catch (e: Throwable) {
+                application.log.error("Failed to delete post", e)
+                call.respond(HttpStatusCode.BadRequest, "Problems Deleting post")
+            }
+        }*/
     }
 }
