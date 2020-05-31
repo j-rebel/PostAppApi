@@ -5,6 +5,7 @@ buildscript {
     
     dependencies {
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        classpath 'com.github.jengelman.gradle.plugins:shadow:5.2.0'
     }
 }
 
@@ -15,7 +16,7 @@ group 'com.example'
 version '0.0.1'
 mainClassName = "io.ktor.server.netty.EngineMain"
 
-task stage(dependsOn: installDist)
+apply plugin: 'com.github.johnrengelman.shadow'
 
 sourceSets {
     main.kotlin.srcDirs = main.java.srcDirs = ['src']
@@ -47,3 +48,13 @@ dependencies {
     compile "org.postgresql:postgresql:$postgres_version"
     compile "com.zaxxer:HikariCP:$hikaricp_version"
 }
+
+task stage(dependsOn: ['assembleShadowDist'])
+
+// This task will generate your fat JAR and put it in the ./build/libs/ directory
+shadowJar {
+    manifest {
+        attributes 'Main-Class': mainClassName
+    }
+}
+shadowJar.mustRunAfter build
