@@ -2,7 +2,6 @@ package com.example.repository
 
 import User
 import com.example.model.Post
-import com.example.model.PostType
 
 interface Repository {
     suspend fun addUser(email: String,
