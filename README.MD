@@ -2,6 +2,8 @@
 
 PostApp - https://github.com/j-rebel/PostApp
 
+Heroku link - https://post-app-back.herokuapp.com/
+
 ## Routes
 
 ### Users
