@@ -72,5 +72,20 @@ fun Route.posts(db: Repository) {
                 call.respond(HttpStatusCode.BadRequest, "Problems Saving post")
             }
         }
+
+        get<PostRoute> {
+            val user = call.sessions.get<MySession>()?.let { db.findUser(it.userId) }
+            if (user == null) {
+                call.respond(HttpStatusCode.BadRequest, "Problems retrieving User")
+                return@get
+            }
+            try {
+                val posts = db.getPost(user.userId)
+                call.respond(posts)
+            } catch (e: Throwable) {
+                application.log.error("Failed to get Posts", e)
+                call.respond(HttpStatusCode.BadRequest, "Problems getting Posts")
+            }
+        }
     }
 }
