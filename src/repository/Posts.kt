@@ -1,6 +1,5 @@
 package com.example.repository
 
-import com.example.model.PostType
 import org.jetbrains.exposed.sql.Column
 import org.jetbrains.exposed.sql.Table
 

@@ -4,7 +4,7 @@ data class Post(
     val id: Long,
     val posted_by: Long,
     val date: Long,
-    val type: PostType,
+    val type: String,
     val repost: Long,
     val text: String,
     val video: String,

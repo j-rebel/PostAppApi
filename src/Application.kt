@@ -5,6 +5,7 @@ import com.example.auth.MySession
 import com.example.auth.hash
 import com.example.repository.DatabaseFactory
 import com.example.repository.PostRepository
+import com.example.routes.posts
 import com.example.routes.users
 import io.ktor.application.*
 import io.ktor.response.*
@@ -83,6 +84,7 @@ fun Application.module(testing: Boolean = false) {
         }
 
         users(db, jwtService, hashFunction)
+        posts(db)
     }
 }
 
