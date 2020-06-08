@@ -4,6 +4,7 @@ import User
 import com.example.model.Post
 import com.example.repository.DatabaseFactory.dbQuery
 import org.jetbrains.exposed.sql.ResultRow
+import org.jetbrains.exposed.sql.deleteWhere
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.select
 import org.jetbrains.exposed.sql.statements.InsertStatement
@@ -75,8 +76,22 @@ class PostRepository: Repository {
     override suspend fun getPost(userId: Long): List<Post> {
         return dbQuery {
             Posts.select {
-                Posts.posted_by.eq((userId)) // 3
+                Posts.posted_by.eq(userId) // 3
             }.mapNotNull { rowToPost(it) }
+        }
+    }
+
+    override suspend fun findPost(postId: Long) = dbQuery {
+        Posts.select { Posts.posted_by.eq(postId) }
+            .map { rowToPost(it) }.singleOrNull()
+    }
+
+    override suspend fun deletePost(userId: Long, postId: Long) {
+        dbQuery {
+            Posts.deleteWhere {
+                Posts.id.eq(postId)
+                Posts.posted_by.eq(userId)
+            }
         }
     }
 
