@@ -3,11 +3,11 @@ package com.example.repository
 import User
 import com.example.model.Post
 import com.example.repository.DatabaseFactory.dbQuery
-import org.jetbrains.exposed.sql.ResultRow
-import org.jetbrains.exposed.sql.deleteWhere
-import org.jetbrains.exposed.sql.insert
-import org.jetbrains.exposed.sql.select
+import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.plus
 import org.jetbrains.exposed.sql.statements.InsertStatement
+import org.jetbrains.exposed.sql.statements.UpdateStatement
 import java.util.*
 
 class PostRepository: Repository {
@@ -72,7 +72,13 @@ class PostRepository: Repository {
     }
 
     override suspend fun getPost(userId: Long): List<Post> {
+
         return dbQuery {
+            Posts.update ({ Posts.posted_by eq userId }) {
+                with(SqlExpressionBuilder) {
+                    it.update(Posts.views, Posts.views + 1)
+                }
+            }
             Posts.select {
                 Posts.posted_by.eq(userId) // 3
             }.mapNotNull { rowToPost(it) }
