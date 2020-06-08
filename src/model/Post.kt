@@ -14,7 +14,5 @@ data class Post(
     val likes_count: Int,
     val shares_count: Int,
     val comments_count: Int,
-    val liked_by: String,
-    val shared_by: String,
-    val commented_by: String
+    val views: Int
 )

@@ -65,9 +65,7 @@ class PostRepository: Repository {
                 it[Posts.likes_count] = 0
                 it[Posts.shares_count] = 0
                 it[Posts.comments_count] = 0
-                it[Posts.liked_by] = "none"
-                it[Posts.shared_by] = "none"
-                it[Posts.commented_by] = "none"
+                it[Posts.views] = 0
             }
         }
         return rowToPost(statement?.resultedValues?.get(0))
@@ -114,9 +112,7 @@ class PostRepository: Repository {
             likes_count = row[Posts.likes_count],
             shares_count = row[Posts.shares_count],
             comments_count = row[Posts.comments_count],
-            liked_by = row[Posts.liked_by],
-            shared_by = row[Posts.shared_by],
-            commented_by = row[Posts.commented_by]
+            views = row[Posts.views]
         )
     }
 }

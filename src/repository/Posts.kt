@@ -17,7 +17,5 @@ object Posts: Table() {
     val likes_count: Column<Int> = integer("likes_count")
     val shares_count: Column<Int> = integer("shares_count")
     val comments_count: Column<Int> = integer("comments_count")
-    val liked_by: Column<String> = varchar("liked_by", 2048)
-    val shared_by: Column<String> = varchar("shared_by", 2048)
-    val commented_by: Column<String> = varchar("commented_by", 2048)
+    val views: Column<Int> = integer("views")
 }

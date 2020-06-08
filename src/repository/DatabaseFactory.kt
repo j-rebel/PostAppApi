@@ -14,6 +14,9 @@ object DatabaseFactory {
         Database.connect(hikari()) // 1
 
         transaction {
+           SchemaUtils.drop(Posts)
+            SchemaUtils.drop(Users)
+
             SchemaUtils.create(Users)
             SchemaUtils.create(Posts)
         }
