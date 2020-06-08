@@ -95,19 +95,19 @@ fun Route.posts(db: Repository) {
             }
             val postId =
                 postsParameters["id"] ?: return@delete call.respond(HttpStatusCode.BadRequest, "Missing Post Id")
-            val post = db.findPost(postId.toLong())
+            val post = db.findPost(postId.toLong()) ?: return@delete call.respond(HttpStatusCode.BadRequest, "Missing Post")
             val user = call.sessions.get<MySession>()?.let { db.findUser(it.userId) }
             if (user == null) {
                 call.respond(HttpStatusCode.BadRequest, "Problems retrieving User")
                 return@delete
             }
             if (user.userId != post?.posted_by) {
-                call.respond(HttpStatusCode.Forbidden, "Forbidden " + user.userId + " " + post?.posted_by)
+                call.respond(HttpStatusCode.Forbidden, "Forbidden")
                 return@delete
             }
 
             try {
-                db.deletePost(user.userId, postId.toLong())
+                db.deletePost(postId.toLong())
                 call.respond(HttpStatusCode.OK)
             } catch (e: Throwable) {
                 application.log.error("Failed to delete post", e)

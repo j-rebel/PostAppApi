@@ -21,6 +21,6 @@ interface Repository {
     ): Post?
     suspend fun getPost(userId: Long): List<Post>
     suspend fun findPost(postId: Long): Post?
-    suspend fun deletePost(userId: Long, postId: Long)
+    suspend fun deletePost(postId: Long)
 }
 

@@ -83,16 +83,15 @@ class PostRepository: Repository {
 
     override suspend fun findPost(postId: Long): Post? {
         return dbQuery {
-            Posts.select { Posts.posted_by.eq(postId) }
+            Posts.select { Posts.id.eq(postId) }
                 .map { rowToPost(it) }.singleOrNull()
         }
     }
 
-    override suspend fun deletePost(userId: Long, postId: Long) {
+    override suspend fun deletePost(postId: Long) {
         dbQuery {
             Posts.deleteWhere {
                 Posts.id.eq(postId)
-                Posts.posted_by.eq(userId)
             }
         }
     }
