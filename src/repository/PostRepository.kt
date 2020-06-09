@@ -1,6 +1,7 @@
 package com.example.repository
 
 import User
+import com.example.model.Like
 import com.example.model.Post
 import com.example.repository.DatabaseFactory.dbQuery
 import org.jetbrains.exposed.sql.*
@@ -100,6 +101,44 @@ class PostRepository: Repository {
         }
     }
 
+    override suspend fun addLike(userId: Long, postId: Long): Like? {
+        val check = dbQuery {
+            Likes.select { Likes.uUd.eq("$userId:$postId") }
+                .map { rowToLike(it) }.singleOrNull()
+        }
+
+        if (check == null) {
+            var statement : InsertStatement<Number>? = null // 1
+            dbQuery { // 2
+                // 3
+                Posts.update ({ Posts.id eq postId }) {
+                    with(SqlExpressionBuilder) {
+                        it.update(Posts.likes_count, Posts.likes_count + 1)
+                    }
+                }
+                statement = Likes.insert { like ->
+                    like[Likes.userId] = userId
+                    like[Likes.postId] = postId
+                    like[Likes.uUd] = "$userId:$postId"
+                }
+            }
+            // 4
+            return rowToLike(statement?.resultedValues?.get(0))
+        } else {
+            dbQuery {
+                Posts.update ({ Posts.id eq postId }) {
+                    with(SqlExpressionBuilder) {
+                        it.update(Posts.likes_count, Posts.likes_count - 1)
+                    }
+                }
+                Likes.deleteWhere {
+                    Likes.uUd.eq("$userId:$postId")
+                }
+            }
+        }
+        return null
+    }
+
     private fun rowToPost(row: ResultRow?): Post? {
         if (row == null) {
             return null
@@ -133,5 +172,16 @@ private fun rowToUser(row: ResultRow?): User? {
         email = row[Users.email],
         displayName = row[Users.displayName],
         passwordHash = row[Users.passwordHash]
+    )
+}
+
+private fun rowToLike(row: ResultRow?): Like? {
+    if (row == null) {
+        return null
+    }
+    return Like(
+        uId = row[Likes.uUd],
+        userId = row[Likes.userId],
+        postId = row[Likes.postId]
     )
 }

@@ -15,12 +15,18 @@ import io.ktor.sessions.get
 import io.ktor.sessions.sessions
 import com.example.auth.MySession
 import com.example.repository.Repository
+import io.ktor.routing.post
 
 const val POSTS = "$API_VERSION/posts"
+const val POST_LIKE = "$POSTS/like"
 
 @KtorExperimentalLocationsAPI
 @Location(POSTS)
 class PostRoute
+
+@KtorExperimentalLocationsAPI
+@Location(POST_LIKE)
+class PostLikeRoute
 
 @KtorExperimentalLocationsAPI
 fun Route.posts(db: Repository) {
@@ -62,10 +68,10 @@ fun Route.posts(db: Repository) {
 
             try {
                 // 4
-                val currentTodo = db.addPost(
+                val currentPost = db.addPost(
                     user.userId, type, repost.toLong(), text, video, address, geo_long.toFloat(), geo_lat.toFloat())
-                currentTodo?.id?.let {
-                    call.respond(HttpStatusCode.OK, currentTodo)
+                currentPost?.id?.let {
+                    call.respond(HttpStatusCode.OK, currentPost)
                 }
             } catch (e: Throwable) {
                 application.log.error("Failed to add post", e)
@@ -112,6 +118,28 @@ fun Route.posts(db: Repository) {
             } catch (e: Throwable) {
                 application.log.error("Failed to delete post", e)
                 call.respond(HttpStatusCode.BadRequest, "Problems Deleting post")
+            }
+        }
+
+        post<PostLikeRoute> {
+            val postsParameters = call.receive<Parameters>()
+            if (!postsParameters.contains("id")) {
+                return@post call.respond(HttpStatusCode.BadRequest, "Missing Post Id")
+            }
+            val postId =
+                postsParameters["id"] ?: return@post call.respond(HttpStatusCode.BadRequest, "Missing Post Id")
+            val post = db.findPost(postId.toLong()) ?: return@post call.respond(HttpStatusCode.BadRequest, "Missing Post")
+            val user = call.sessions.get<MySession>()?.let { db.findUser(it.userId) }
+            if (user == null) {
+                call.respond(HttpStatusCode.BadRequest, "Problems retrieving User")
+                return@post
+            }
+            try {
+                db.addLike(user.userId, postId.toLong())
+                call.respond(HttpStatusCode.OK)
+            } catch (e: Throwable) {
+                application.log.error("Failed to process", e)
+                call.respond(HttpStatusCode.BadRequest, "Failed to process")
             }
         }
     }

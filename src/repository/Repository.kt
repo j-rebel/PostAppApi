@@ -1,6 +1,7 @@
 package com.example.repository
 
 import User
+import com.example.model.Like
 import com.example.model.Post
 
 interface Repository {
@@ -22,5 +23,8 @@ interface Repository {
     suspend fun getPost(userId: Long): List<Post>
     suspend fun findPost(postId: Long): Post?
     suspend fun deletePost(postId: Long)
+    suspend fun addLike(userId: Long,
+                        postId: Long
+    ): Like?
 }
 
