@@ -19,6 +19,7 @@ object DatabaseFactory {
 
             SchemaUtils.create(Users)
             SchemaUtils.create(Posts)
+            SchemaUtils.create(Likes)
         }
     }
 
