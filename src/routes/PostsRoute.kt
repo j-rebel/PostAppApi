@@ -15,14 +15,18 @@ import io.ktor.sessions.get
 import io.ktor.sessions.sessions
 import com.example.auth.MySession
 import com.example.repository.Repository
-import io.ktor.routing.post
 
 const val POSTS = "$API_VERSION/posts"
+const val ALL_POSTS = "$POSTS/all"
 const val POST_LIKE = "$POSTS/like"
 
 @KtorExperimentalLocationsAPI
 @Location(POSTS)
 class PostRoute
+
+@KtorExperimentalLocationsAPI
+@Location(ALL_POSTS)
+class AllPostRoute
 
 @KtorExperimentalLocationsAPI
 @Location(POST_LIKE)
@@ -86,7 +90,7 @@ fun Route.posts(db: Repository) {
                 return@get
             }
             try {
-                val posts = db.getPost(user.userId)
+                val posts = db.getPostsByUser(user.userId)
                 call.respond(posts)
             } catch (e: Throwable) {
                 application.log.error("Failed to get Posts", e)
@@ -101,7 +105,7 @@ fun Route.posts(db: Repository) {
             }
             val postId =
                 postsParameters["id"] ?: return@delete call.respond(HttpStatusCode.BadRequest, "Missing Post Id")
-            val post = db.findPost(postId.toLong()) ?: return@delete call.respond(HttpStatusCode.BadRequest, "Missing Post")
+            val post = db.findPostById(postId.toLong()) ?: return@delete call.respond(HttpStatusCode.BadRequest, "Missing Post")
             val user = call.sessions.get<MySession>()?.let { db.findUser(it.userId) }
             if (user == null) {
                 call.respond(HttpStatusCode.BadRequest, "Problems retrieving User")
@@ -121,6 +125,16 @@ fun Route.posts(db: Repository) {
             }
         }
 
+        get<AllPostRoute> {
+            try {
+                val posts = db.getAllPosts()
+                call.respond(posts)
+            } catch (e: Throwable) {
+                application.log.error("Failed to get Posts", e)
+                call.respond(HttpStatusCode.BadRequest, "Problems getting Posts")
+            }
+        }
+
         post<PostLikeRoute> {
             val postsParameters = call.receive<Parameters>()
             val userId = postsParameters["user"]
@@ -134,7 +148,7 @@ fun Route.posts(db: Repository) {
                 call.respond(HttpStatusCode.BadRequest, "User not found")
                 return@post
             }
-            val post = db.findPost(postId.toLong())
+            val post = db.findPostById(postId.toLong())
             if (post == null) {
                 call.respond(HttpStatusCode.BadRequest, "Post not found")
                 return@post

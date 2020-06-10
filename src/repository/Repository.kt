@@ -20,8 +20,9 @@ interface Repository {
                         geo_long: Float,
                         geo_lat: Float
     ): Post?
-    suspend fun getPost(userId: Long): List<Post>
-    suspend fun findPost(postId: Long): Post?
+    suspend fun getAllPosts(): List<Post>
+    suspend fun getPostsByUser(userId: Long): List<Post>
+    suspend fun findPostById(postId: Long): Post?
     suspend fun deletePost(postId: Long)
     suspend fun addLike(userId: Long,
                         postId: Long

@@ -5,10 +5,7 @@ import com.example.model.Like
 import com.example.model.Post
 import com.example.repository.DatabaseFactory.dbQuery
 import org.jetbrains.exposed.sql.*
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.plus
 import org.jetbrains.exposed.sql.statements.InsertStatement
-import org.jetbrains.exposed.sql.statements.UpdateStatement
 import java.util.*
 
 class PostRepository: Repository {
@@ -72,7 +69,18 @@ class PostRepository: Repository {
         return rowToPost(statement?.resultedValues?.get(0))
     }
 
-    override suspend fun getPost(userId: Long): List<Post> {
+    override suspend fun getAllPosts(): List<Post> {
+        return dbQuery {
+            Posts.update {
+                with(SqlExpressionBuilder) {
+                    it.update(Posts.views, Posts.views + 1)
+                }
+            }
+            Posts.selectAll().mapNotNull { rowToPost(it) }
+        }
+    }
+
+    override suspend fun getPostsByUser(userId: Long): List<Post> {
 
         return dbQuery {
             Posts.update ({ Posts.posted_by eq userId }) {
@@ -86,7 +94,7 @@ class PostRepository: Repository {
         }
     }
 
-    override suspend fun findPost(postId: Long): Post? {
+    override suspend fun findPostById(postId: Long): Post? {
         return dbQuery {
             Posts.select { Posts.id.eq(postId) }
                 .map { rowToPost(it) }.singleOrNull()
@@ -103,7 +111,7 @@ class PostRepository: Repository {
 
     override suspend fun addLike(userId: Long, postId: Long): Like? {
         val check = dbQuery {
-            Likes.select { Likes.uUd.eq("$userId:$postId") }
+            Likes.select { Likes.uId.eq("$userId:$postId") }
                 .map { rowToLike(it) }.singleOrNull()
         }
 
@@ -119,7 +127,7 @@ class PostRepository: Repository {
                 statement = Likes.insert { like ->
                     like[Likes.userId] = userId
                     like[Likes.postId] = postId
-                    like[Likes.uUd] = "$userId:$postId"
+                    like[Likes.uId] = "$userId:$postId"
                 }
             }
             // 4
@@ -132,7 +140,7 @@ class PostRepository: Repository {
                     }
                 }
                 Likes.deleteWhere {
-                    Likes.uUd.eq("$userId:$postId")
+                    Likes.uId.eq("$userId:$postId")
                 }
             }
         }
@@ -180,7 +188,7 @@ private fun rowToLike(row: ResultRow?): Like? {
         return null
     }
     return Like(
-        uId = row[Likes.uUd],
+        uId = row[Likes.uId],
         userId = row[Likes.userId],
         postId = row[Likes.postId]
     )
