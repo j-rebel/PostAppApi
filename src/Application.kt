@@ -15,9 +15,12 @@ import io.ktor.auth.*
 import io.ktor.auth.jwt.jwt
 import io.ktor.gson.*
 import io.ktor.features.*
+import io.ktor.util.KtorExperimentalAPI
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 
+@KtorExperimentalAPI
+@KtorExperimentalLocationsAPI
 @Suppress("unused") // Referenced in application.conf
 @kotlin.jvm.JvmOverloads
 fun Application.module(testing: Boolean = false) {

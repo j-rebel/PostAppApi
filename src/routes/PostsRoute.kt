@@ -58,11 +58,11 @@ fun Route.posts(db: Repository) {
                 ?: return@post call.respond(
                     HttpStatusCode.BadRequest, "Missing address"
                 )
-            val geo_long = postsParameters["geo_long"]
+            val geoLong = postsParameters["geo_long"]
                 ?: return@post call.respond(
                     HttpStatusCode.BadRequest, "Missing longitude"
                 )
-            val geo_lat = postsParameters["geo_lat"]
+            val geoLat = postsParameters["geo_lat"]
                 ?: return@post call.respond(
                     HttpStatusCode.BadRequest, "Missing latitude"
                 )
@@ -78,7 +78,7 @@ fun Route.posts(db: Repository) {
 
             try {
                 val currentPost = db.addPost(
-                    user.userId, type, repost.toLong(), text, video, address, geo_long.toFloat(), geo_lat.toFloat()
+                    user.userId, type, repost.toLong(), text, video, address, geoLong.toFloat(), geoLat.toFloat()
                 )
                 currentPost?.id?.let {
                     call.respond(HttpStatusCode.OK, currentPost)
