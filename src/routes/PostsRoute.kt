@@ -123,19 +123,24 @@ fun Route.posts(db: Repository) {
 
         post<PostLikeRoute> {
             val postsParameters = call.receive<Parameters>()
-            if (!postsParameters.contains("id")) {
-                return@post call.respond(HttpStatusCode.BadRequest, "Missing Post Id")
-            }
-            val postId =
-                postsParameters["id"] ?: return@post call.respond(HttpStatusCode.BadRequest, "Missing Post Id")
-            val post = db.findPost(postId.toLong()) ?: return@post call.respond(HttpStatusCode.BadRequest, "Missing Post")
-            val user = call.sessions.get<MySession>()?.let { db.findUser(it.userId) }
+            val userId = postsParameters["user"]
+                ?: return@post call.respond(
+                    HttpStatusCode.BadRequest, "Missing user")
+            val postId = postsParameters["post"]
+                ?: return@post call.respond(
+                    HttpStatusCode.BadRequest, "Missing post")
+            val user = db.findUser(userId.toLong())
             if (user == null) {
-                call.respond(HttpStatusCode.BadRequest, "Problems retrieving User")
+                call.respond(HttpStatusCode.BadRequest, "User not found")
+                return@post
+            }
+            val post = db.findPost(postId.toLong())
+            if (post == null) {
+                call.respond(HttpStatusCode.BadRequest, "Post not found")
                 return@post
             }
             try {
-                db.addLike(user.userId, postId.toLong())
+                db.addLike(user.userId, post.id)
                 call.respond(HttpStatusCode.OK)
             } catch (e: Throwable) {
                 application.log.error("Failed to process", e)
