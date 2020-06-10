@@ -8,15 +8,15 @@ import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.statements.InsertStatement
 import java.util.*
 
-class PostRepository: Repository {
+class PostRepository : Repository {
     override suspend fun addUser(
         email: String,
         displayName: String,
         passwordHash: String,
-        avatar: String) : User? {
-        var statement : InsertStatement<Number>? = null // 1
-        dbQuery { // 2
-            // 3
+        avatar: String
+    ): User? {
+        var statement: InsertStatement<Number>? = null
+        dbQuery {
             statement = Users.insert { user ->
                 user[Users.email] = email
                 user[Users.displayName] = displayName
@@ -24,7 +24,6 @@ class PostRepository: Repository {
                 user[Users.avatar] = avatar
             }
         }
-        // 4
         return rowToUser(statement?.resultedValues?.get(0))
     }
 
@@ -33,7 +32,7 @@ class PostRepository: Repository {
             .map { rowToUser(it) }.singleOrNull()
     }
 
-    override suspend fun findUserByEmail(email: String)= dbQuery {
+    override suspend fun findUserByEmail(email: String) = dbQuery {
         Users.select { Users.email.eq(email) }
             .map { rowToUser(it) }.singleOrNull()
     }
@@ -48,7 +47,7 @@ class PostRepository: Repository {
         geo_long: Float,
         geo_lat: Float
     ): Post? {
-        var statement : InsertStatement<Number>? = null
+        var statement: InsertStatement<Number>? = null
         dbQuery {
             statement = Posts.insert {
                 it[Posts.posted_by] = posted_by
@@ -83,13 +82,13 @@ class PostRepository: Repository {
     override suspend fun getPostsByUser(userId: Long): List<Post> {
 
         return dbQuery {
-            Posts.update ({ Posts.posted_by eq userId }) {
+            Posts.update({ Posts.posted_by eq userId }) {
                 with(SqlExpressionBuilder) {
                     it.update(Posts.views, Posts.views + 1)
                 }
             }
             Posts.select {
-                Posts.posted_by.eq(userId) // 3
+                Posts.posted_by.eq(userId)
             }.mapNotNull { rowToPost(it) }
         }
     }
@@ -116,10 +115,9 @@ class PostRepository: Repository {
         }
 
         if (check == null) {
-            var statement : InsertStatement<Number>? = null // 1
-            dbQuery { // 2
-                // 3
-                Posts.update ({ Posts.id eq postId }) {
+            var statement: InsertStatement<Number>? = null
+            dbQuery {
+                Posts.update({ Posts.id eq postId }) {
                     with(SqlExpressionBuilder) {
                         it.update(Posts.likes_count, Posts.likes_count + 1)
                     }
@@ -130,11 +128,10 @@ class PostRepository: Repository {
                     like[Likes.uId] = "$userId:$postId"
                 }
             }
-            // 4
             return rowToLike(statement?.resultedValues?.get(0))
         } else {
             dbQuery {
-                Posts.update ({ Posts.id eq postId }) {
+                Posts.update({ Posts.id eq postId }) {
                     with(SqlExpressionBuilder) {
                         it.update(Posts.likes_count, Posts.likes_count - 1)
                     }

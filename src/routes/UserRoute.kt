@@ -37,23 +37,27 @@ fun Route.users(
     jwtService: JwtService,
     hashFunction: (String) -> String
 ) {
-    post<UserCreateRoute> { // 2
-        val signupParameters = call.receive<Parameters>() // 3
-        val password = signupParameters["password"] // 4
+    post<UserCreateRoute> {
+        val signupParameters = call.receive<Parameters>()
+        val password = signupParameters["password"]
             ?: return@post call.respond(
-                HttpStatusCode.Unauthorized, "Missing pass")
+                HttpStatusCode.Unauthorized, "Missing pass"
+            )
         val displayName = signupParameters["displayName"]
             ?: return@post call.respond(
-                HttpStatusCode.Unauthorized, "Missing name")
+                HttpStatusCode.Unauthorized, "Missing name"
+            )
         val email = signupParameters["email"]
             ?: return@post call.respond(
-                HttpStatusCode.Unauthorized, "Missing email")
+                HttpStatusCode.Unauthorized, "Missing email"
+            )
         val avatar = signupParameters["avatar"]
             ?: return@post call.respond(
-                HttpStatusCode.Unauthorized, "Missing avatar")
-        val hash = hashFunction(password) // 5
+                HttpStatusCode.Unauthorized, "Missing avatar"
+            )
+        val hash = hashFunction(password)
         try {
-            val newUser = db.addUser(email, displayName, hash, avatar) // 6
+            val newUser = db.addUser(email, displayName, hash, avatar)
             newUser?.userId?.let {
                 call.sessions.set(MySession(it))
                 call.respondText(
@@ -67,24 +71,27 @@ fun Route.users(
         }
     }
 
-    post<UserLoginRoute> { // 1
+    post<UserLoginRoute> {
         val signinParameters = call.receive<Parameters>()
         val password = signinParameters["password"]
             ?: return@post call.respond(
-                HttpStatusCode.Unauthorized, "Missing pass")
+                HttpStatusCode.Unauthorized, "Missing pass"
+            )
         val email = signinParameters["email"]
             ?: return@post call.respond(
-                HttpStatusCode.Unauthorized, "Missing email")
+                HttpStatusCode.Unauthorized, "Missing email"
+            )
         val hash = hashFunction(password)
         try {
-            val currentUser = db.findUserByEmail(email) // 2
+            val currentUser = db.findUserByEmail(email)
             currentUser?.userId?.let {
-                if (currentUser.passwordHash == hash) { // 3
-                    call.sessions.set(MySession(it)) // 4
-                    call.respondText(jwtService.generateToken(currentUser)) // 5
+                if (currentUser.passwordHash == hash) {
+                    call.sessions.set(MySession(it))
+                    call.respondText(jwtService.generateToken(currentUser))
                 } else {
                     call.respond(
-                        HttpStatusCode.BadRequest, "Problems retrieving User") // 6
+                        HttpStatusCode.BadRequest, "Problems retrieving User"
+                    )
                 }
             }
         } catch (e: Throwable) {

@@ -3,9 +3,9 @@ package com.example.repository
 import org.jetbrains.exposed.sql.Column
 import org.jetbrains.exposed.sql.Table
 
-object Posts: Table() {
-    val id : Column<Long> = long("id").autoIncrement().uniqueIndex().primaryKey()
-    val posted_by : Column<Long> = long("posted_by").references(Users.userId)
+object Posts : Table() {
+    val id: Column<Long> = long("id").autoIncrement().uniqueIndex().primaryKey()
+    val posted_by: Column<Long> = long("posted_by").references(Users.userId)
     val date: Column<Long> = long("date")
     val type: Column<String> = varchar("type", 256)
     val repost: Column<Long> = long("repost")

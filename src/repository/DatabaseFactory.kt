@@ -11,7 +11,7 @@ import org.jetbrains.exposed.sql.transactions.transaction
 object DatabaseFactory {
 
     fun init() {
-        Database.connect(hikari()) // 1
+        Database.connect(hikari())
 
         transaction {
 /*            SchemaUtils.drop(Likes)

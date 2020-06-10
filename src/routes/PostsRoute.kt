@@ -34,46 +34,52 @@ class PostLikeRoute
 
 @KtorExperimentalLocationsAPI
 fun Route.posts(db: Repository) {
-    authenticate("jwt") { // 1
-        post<PostRoute> { // 2
+    authenticate("jwt") {
+        post<PostRoute> {
             val postsParameters = call.receive<Parameters>()
 
             val type = postsParameters["type"]
                 ?: return@post call.respond(
-                    HttpStatusCode.BadRequest, "Missing type")
+                    HttpStatusCode.BadRequest, "Missing type"
+                )
             val repost = postsParameters["repost"]
                 ?: return@post call.respond(
-                    HttpStatusCode.BadRequest, "Missing repost")
+                    HttpStatusCode.BadRequest, "Missing repost"
+                )
             val text = postsParameters["text"]
                 ?: return@post call.respond(
-                    HttpStatusCode.BadRequest, "Missing text")
+                    HttpStatusCode.BadRequest, "Missing text"
+                )
             val video = postsParameters["video"]
                 ?: return@post call.respond(
-                    HttpStatusCode.BadRequest, "Missing video")
+                    HttpStatusCode.BadRequest, "Missing video"
+                )
             val address = postsParameters["address"]
                 ?: return@post call.respond(
-                    HttpStatusCode.BadRequest, "Missing address")
+                    HttpStatusCode.BadRequest, "Missing address"
+                )
             val geo_long = postsParameters["geo_long"]
                 ?: return@post call.respond(
-                    HttpStatusCode.BadRequest, "Missing longitude")
+                    HttpStatusCode.BadRequest, "Missing longitude"
+                )
             val geo_lat = postsParameters["geo_lat"]
                 ?: return@post call.respond(
-                    HttpStatusCode.BadRequest, "Missing latitude")
-
-            // 3
+                    HttpStatusCode.BadRequest, "Missing latitude"
+                )
             val user = call.sessions.get<MySession>()?.let {
                 db.findUser(it.userId)
             }
             if (user == null) {
                 call.respond(
-                    HttpStatusCode.BadRequest, "Problems retrieving User")
+                    HttpStatusCode.BadRequest, "Problems retrieving User"
+                )
                 return@post
             }
 
             try {
-                // 4
                 val currentPost = db.addPost(
-                    user.userId, type, repost.toLong(), text, video, address, geo_long.toFloat(), geo_lat.toFloat())
+                    user.userId, type, repost.toLong(), text, video, address, geo_long.toFloat(), geo_lat.toFloat()
+                )
                 currentPost?.id?.let {
                     call.respond(HttpStatusCode.OK, currentPost)
                 }
@@ -105,13 +111,16 @@ fun Route.posts(db: Repository) {
             }
             val postId =
                 postsParameters["id"] ?: return@delete call.respond(HttpStatusCode.BadRequest, "Missing Post Id")
-            val post = db.findPostById(postId.toLong()) ?: return@delete call.respond(HttpStatusCode.BadRequest, "Missing Post")
+            val post = db.findPostById(postId.toLong()) ?: return@delete call.respond(
+                HttpStatusCode.BadRequest,
+                "Missing Post"
+            )
             val user = call.sessions.get<MySession>()?.let { db.findUser(it.userId) }
             if (user == null) {
                 call.respond(HttpStatusCode.BadRequest, "Problems retrieving User")
                 return@delete
             }
-            if (user.userId != post?.posted_by) {
+            if (user.userId != post.posted_by) {
                 call.respond(HttpStatusCode.Forbidden, "Forbidden")
                 return@delete
             }
@@ -139,10 +148,12 @@ fun Route.posts(db: Repository) {
             val postsParameters = call.receive<Parameters>()
             val userId = postsParameters["user"]
                 ?: return@post call.respond(
-                    HttpStatusCode.BadRequest, "Missing user")
+                    HttpStatusCode.BadRequest, "Missing user"
+                )
             val postId = postsParameters["post"]
                 ?: return@post call.respond(
-                    HttpStatusCode.BadRequest, "Missing post")
+                    HttpStatusCode.BadRequest, "Missing post"
+                )
             val user = db.findUser(userId.toLong())
             if (user == null) {
                 call.respond(HttpStatusCode.BadRequest, "User not found")

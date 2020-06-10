@@ -36,14 +36,14 @@ fun Application.module(testing: Boolean = false) {
     val hashFunction = { s: String -> hash(s) }
 
     install(Authentication) {
-        jwt("jwt") { //1
-            verifier(jwtService.verifier) // 2
+        jwt("jwt") {
+            verifier(jwtService.verifier)
             realm = "Post Server"
-            validate { // 3
+            validate {
                 val payload = it.payload
                 val claim = payload.getClaim("id")
                 val claimString = claim.asLong()
-                val user = db.findUser(claimString) // 4
+                val user = db.findUser(claimString)
                 user
             }
         }

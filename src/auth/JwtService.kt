@@ -9,16 +9,14 @@ import java.util.*
 class JwtService {
 
     private val issuer = "postServer"
-    private val jwtSecret = System.getenv("JWT_SECRET") // 1
+    private val jwtSecret = System.getenv("JWT_SECRET")
     private val algorithm = Algorithm.HMAC512(jwtSecret)
 
-    // 2
     val verifier: JWTVerifier = JWT
         .require(algorithm)
         .withIssuer(issuer)
         .build()
 
-    // 3
     fun generateToken(user: User): String = JWT.create()
         .withSubject("Authentication")
         .withIssuer(issuer)
