@@ -53,6 +53,12 @@ params:
 - user
 - post
 
+#### 4. POST /v1/posts/share
+
+params:
+- user
+- post
+
 ## Config Vars
 
 JDBC_DRIVER = org.postgresql.Driver
