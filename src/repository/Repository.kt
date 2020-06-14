@@ -3,6 +3,7 @@ package com.example.repository
 import User
 import com.example.model.Like
 import com.example.model.Post
+import com.example.model.Share
 
 interface Repository {
     suspend fun addUser(
@@ -33,5 +34,9 @@ interface Repository {
         userId: Long,
         postId: Long
     ): Like?
+    suspend fun addShare(
+        userId: Long,
+        postId: Long
+    ): Share?
 }
 

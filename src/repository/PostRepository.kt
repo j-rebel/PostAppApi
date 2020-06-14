@@ -3,6 +3,7 @@ package com.example.repository
 import User
 import com.example.model.Like
 import com.example.model.Post
+import com.example.model.Share
 import com.example.repository.DatabaseFactory.dbQuery
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.statements.InsertStatement
@@ -144,6 +145,42 @@ class PostRepository : Repository {
         return null
     }
 
+    override suspend fun addShare(userId: Long, postId: Long): Share? {
+        val check = dbQuery {
+            Shares.select { Shares.uId.eq("$userId:$postId") }
+                .map { rowToShare(it) }.singleOrNull()
+        }
+
+        if (check == null) {
+            var statement: InsertStatement<Number>? = null
+            dbQuery {
+                Posts.update({ Posts.id eq postId }) {
+                    with(SqlExpressionBuilder) {
+                        it.update(Posts.shares_count, Posts.shares_count + 1)
+                    }
+                }
+                statement = Shares.insert { share ->
+                    share[Shares.userId] = userId
+                    share[Shares.postId] = postId
+                    share[Shares.uId] = "$userId:$postId"
+                }
+            }
+            return rowToShare(statement?.resultedValues?.get(0))
+        } else {
+            dbQuery {
+                Posts.update({ Posts.id eq postId }) {
+                    with(SqlExpressionBuilder) {
+                        it.update(Posts.shares_count, Posts.shares_count - 1)
+                    }
+                }
+                Likes.deleteWhere {
+                    Shares.uId.eq("$userId:$postId")
+                }
+            }
+        }
+        return null
+    }
+
     private fun rowToPost(row: ResultRow?): Post? {
         if (row == null) {
             return null
@@ -188,5 +225,16 @@ private fun rowToLike(row: ResultRow?): Like? {
         uId = row[Likes.uId],
         userId = row[Likes.userId],
         postId = row[Likes.postId]
+    )
+}
+
+private fun rowToShare(row: ResultRow?): Share? {
+    if (row == null) {
+        return null
+    }
+    return Share(
+        uId = row[Shares.uId],
+        userId = row[Shares.userId],
+        postId = row[Shares.postId]
     )
 }

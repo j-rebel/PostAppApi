@@ -18,7 +18,7 @@ object DatabaseFactory {
             SchemaUtils.drop(Posts)
             SchemaUtils.drop(Users)*/
 
-
+            SchemaUtils.create(Shares)
             SchemaUtils.create(Users)
             SchemaUtils.create(Posts)
             SchemaUtils.create(Likes)
