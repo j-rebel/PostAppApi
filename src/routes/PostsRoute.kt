@@ -19,6 +19,7 @@ import com.example.repository.Repository
 const val POSTS = "$API_VERSION/posts"
 const val ALL_POSTS = "$POSTS/all"
 const val POST_LIKE = "$POSTS/like"
+const val POST_SHARE = "$POSTS/share"
 
 @KtorExperimentalLocationsAPI
 @Location(POSTS)
@@ -31,6 +32,10 @@ class AllPostRoute
 @KtorExperimentalLocationsAPI
 @Location(POST_LIKE)
 class PostLikeRoute
+
+@KtorExperimentalLocationsAPI
+@Location(POST_SHARE)
+class PostShareRoute
 
 @KtorExperimentalLocationsAPI
 fun Route.posts(db: Repository) {
@@ -166,6 +171,35 @@ fun Route.posts(db: Repository) {
             }
             try {
                 db.addLike(user.userId, post.id)
+                call.respond(HttpStatusCode.OK)
+            } catch (e: Throwable) {
+                application.log.error("Failed to process", e)
+                call.respond(HttpStatusCode.BadRequest, "Failed to process")
+            }
+        }
+
+        post<PostShareRoute> {
+            val postsParameters = call.receive<Parameters>()
+            val userId = postsParameters["user"]
+                ?: return@post call.respond(
+                    HttpStatusCode.BadRequest, "Missing user"
+                )
+            val postId = postsParameters["post"]
+                ?: return@post call.respond(
+                    HttpStatusCode.BadRequest, "Missing post"
+                )
+            val user = db.findUser(userId.toLong())
+            if (user == null) {
+                call.respond(HttpStatusCode.BadRequest, "User not found")
+                return@post
+            }
+            val post = db.findPostById(postId.toLong())
+            if (post == null) {
+                call.respond(HttpStatusCode.BadRequest, "Post not found")
+                return@post
+            }
+            try {
+                db.addShare(user.userId, post.id)
                 call.respond(HttpStatusCode.OK)
             } catch (e: Throwable) {
                 application.log.error("Failed to process", e)
