@@ -6,6 +6,7 @@ import com.example.model.Post
 import com.example.model.Share
 import com.example.repository.DatabaseFactory.dbQuery
 import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.statements.InsertStatement
 import java.util.*
 
@@ -105,6 +106,29 @@ class PostRepository : Repository {
         dbQuery {
             Posts.deleteWhere {
                 Posts.id.eq(postId)
+            }
+        }
+    }
+
+    override suspend fun updatePost(
+        postId: Long,
+        type: String,
+        repost: Long,
+        text: String,
+        video: String,
+        address: String,
+        geo_long: Float,
+        geo_lat: Float
+    ) {
+        dbQuery {
+            Posts.update({ Posts.id eq postId }) {
+                it[Posts.type] = type
+                it[Posts.repost] = repost
+                it[Posts.text] = text
+                it[Posts.video] = video
+                it[Posts.address] = address
+                it[Posts.geoLong] = geo_long
+                it[Posts.geoLat] = geo_lat
             }
         }
     }

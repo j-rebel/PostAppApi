@@ -119,13 +119,13 @@ fun Route.posts(db: Repository) {
             }
             val postId =
                 postsParameters["id"] ?: return@delete call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Missing Post Id"))
-            val post = db.findPostById(postId.toLong()) ?: return@delete call.respond(
-                HttpStatusCode.BadRequest,
-                mapOf("error" to "Missing Post")
+            val post = db.findPostById(postId.toLong())
+                ?: return@delete call.respond(
+                HttpStatusCode.NotFound, mapOf("error" to "Missing Post")
             )
             val user = call.sessions.get<MySession>()?.let { db.findUser(it.userId) }
             if (user == null) {
-                call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Problems retrieving com.example.model.User"))
+                call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Problems retrieving user"))
                 return@delete
             }
             if (user.userId != post.postedBy) {
@@ -139,6 +139,71 @@ fun Route.posts(db: Repository) {
             } catch (e: Throwable) {
                 application.log.error("Failed to delete post", e)
                 call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Problems Deleting post"))
+            }
+        }
+
+        patch<PostRoute> {
+            val postsParameters = call.receive<Parameters>()
+
+            val postId = postsParameters["id"]
+                ?: return@patch call.respond(
+                    HttpStatusCode.BadRequest, mapOf("error" to "Missing Post Id")
+                )
+            val post = db.findPostById(postId.toLong())
+                ?: return@patch call.respond(
+                HttpStatusCode.NotFound, mapOf("error" to "Missing Post")
+            )
+            val type = postsParameters["type"]
+                ?: return@patch call.respond (
+                    HttpStatusCode.BadRequest, mapOf("error" to "Missing type")
+                )
+            val repost = postsParameters["repost"]
+                ?: return@patch call.respond(
+                    HttpStatusCode.BadRequest, mapOf("error" to "Missing repost")
+                )
+            val text = postsParameters["text"]
+                ?: return@patch call.respond(
+                    HttpStatusCode.BadRequest, mapOf("error" to "Missing text")
+                )
+            val video = postsParameters["video"]
+                ?: return@patch call.respond(
+                    HttpStatusCode.BadRequest, mapOf("error" to "Missing video")
+                )
+            val address = postsParameters["address"]
+                ?: return@patch call.respond(
+                    HttpStatusCode.BadRequest, mapOf("error" to "Missing address")
+                )
+            val geoLong = postsParameters["geo_long"]
+                ?: return@patch call.respond(
+                    HttpStatusCode.BadRequest, mapOf("error" to "Missing longitude")
+                )
+            val geoLat = postsParameters["geo_lat"]
+                ?: return@patch call.respond(
+                    HttpStatusCode.BadRequest, mapOf("error" to "Missing latitude")
+                )
+            val user = call.sessions.get<MySession>()?.let {
+                db.findUser(it.userId)
+            }
+            if (user == null) {
+                call.respond(
+                    HttpStatusCode.BadRequest, mapOf("error" to "No user data sent")
+                )
+                return@patch
+            }
+
+            if (user.userId != post.postedBy) {
+                call.respond(HttpStatusCode.Forbidden, mapOf("error" to "Forbidden"))
+                return@patch
+            }
+
+            try {
+                db.updatePost(
+                    postId.toLong(), type, repost.toLong(), text, video, address, geoLong.toFloat(), geoLat.toFloat()
+                )
+                call.respond(HttpStatusCode.OK, mapOf("success" to "Post updated"))
+            } catch (e: Throwable) {
+                application.log.error("Failed to update post", e)
+                call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Failed to update post"))
             }
         }
 

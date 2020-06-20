@@ -30,6 +30,16 @@ interface Repository {
     suspend fun getPostsByUser(userId: Long): List<Post>
     suspend fun findPostById(postId: Long): Post?
     suspend fun deletePost(postId: Long)
+    suspend fun updatePost(
+        postId: Long,
+        type: String,
+        repost: Long,
+        text: String,
+        video: String,
+        address: String,
+        geo_long: Float,
+        geo_lat: Float
+    )
     suspend fun addLike(
         userId: Long,
         postId: Long
