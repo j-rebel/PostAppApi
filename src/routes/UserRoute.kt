@@ -51,6 +51,11 @@ fun Route.users(
             ?: return@post call.respond(
                 HttpStatusCode.Unauthorized, mapOf("error" to "Missing email")
             )
+        if (db.findUserByEmail(email) != null) {
+            call.respond(
+                HttpStatusCode.BadRequest, mapOf("error" to "User with such email already exists")
+            )
+        }
         val avatar = signupParameters["avatar"]
             ?: return@post call.respond(
                 HttpStatusCode.Unauthorized, mapOf("error" to "Missing avatar")
