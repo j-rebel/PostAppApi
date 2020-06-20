@@ -1,5 +1,6 @@
+package com.example.model
+
 import io.ktor.auth.Principal
-import java.io.Serializable
 
 data class User(
     val userId: Long,
@@ -7,4 +8,4 @@ data class User(
     val email: String,
     val displayName: String,
     val passwordHash: String
-) : Serializable, Principal
+) : Principal

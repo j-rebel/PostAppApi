@@ -1,6 +1,6 @@
 package com.example.repository
 
-import User
+import com.example.model.User
 import com.example.model.Like
 import com.example.model.Post
 import com.example.model.Share
@@ -51,18 +51,18 @@ class PostRepository : Repository {
         var statement: InsertStatement<Number>? = null
         dbQuery {
             statement = Posts.insert {
-                it[Posts.posted_by] = posted_by
+                it[Posts.postedBy] = posted_by
                 it[Posts.date] = Date().time
                 it[Posts.type] = type
                 it[Posts.repost] = repost
                 it[Posts.text] = text
                 it[Posts.video] = video
                 it[Posts.address] = address
-                it[Posts.geo_long] = geo_long
-                it[Posts.geo_lat] = geo_lat
-                it[Posts.likes_count] = 0
-                it[Posts.shares_count] = 0
-                it[Posts.comments_count] = 0
+                it[Posts.geoLong] = geo_long
+                it[Posts.geoLat] = geo_lat
+                it[Posts.likesCount] = 0
+                it[Posts.sharesCount] = 0
+                it[Posts.commentsCount] = 0
                 it[Posts.views] = 0
             }
         }
@@ -83,13 +83,13 @@ class PostRepository : Repository {
     override suspend fun getPostsByUser(userId: Long): List<Post> {
 
         return dbQuery {
-            Posts.update({ Posts.posted_by eq userId }) {
+            Posts.update({ Posts.postedBy eq userId }) {
                 with(SqlExpressionBuilder) {
                     it.update(Posts.views, Posts.views + 1)
                 }
             }
             Posts.select {
-                Posts.posted_by.eq(userId)
+                Posts.postedBy.eq(userId)
             }.mapNotNull { rowToPost(it) }
         }
     }
@@ -120,7 +120,7 @@ class PostRepository : Repository {
             dbQuery {
                 Posts.update({ Posts.id eq postId }) {
                     with(SqlExpressionBuilder) {
-                        it.update(Posts.likes_count, Posts.likes_count + 1)
+                        it.update(Posts.likesCount, Posts.likesCount + 1)
                     }
                 }
                 statement = Likes.insert { like ->
@@ -134,7 +134,7 @@ class PostRepository : Repository {
             dbQuery {
                 Posts.update({ Posts.id eq postId }) {
                     with(SqlExpressionBuilder) {
-                        it.update(Posts.likes_count, Posts.likes_count - 1)
+                        it.update(Posts.likesCount, Posts.likesCount - 1)
                     }
                 }
                 Likes.deleteWhere {
@@ -156,7 +156,7 @@ class PostRepository : Repository {
             dbQuery {
                 Posts.update({ Posts.id eq postId }) {
                     with(SqlExpressionBuilder) {
-                        it.update(Posts.shares_count, Posts.shares_count + 1)
+                        it.update(Posts.sharesCount, Posts.sharesCount + 1)
                     }
                 }
                 statement = Shares.insert { share ->
@@ -170,7 +170,7 @@ class PostRepository : Repository {
             dbQuery {
                 Posts.update({ Posts.id eq postId }) {
                     with(SqlExpressionBuilder) {
-                        it.update(Posts.shares_count, Posts.shares_count - 1)
+                        it.update(Posts.sharesCount, Posts.sharesCount - 1)
                     }
                 }
                 Likes.deleteWhere {
@@ -187,18 +187,18 @@ class PostRepository : Repository {
         }
         return Post(
             id = row[Posts.id],
-            posted_by = row[Posts.posted_by],
+            postedBy = row[Posts.postedBy],
             date = row[Posts.date],
             type = row[Posts.type],
             repost = row[Posts.repost],
             text = row[Posts.text],
             video = row[Posts.video],
             address = row[Posts.address],
-            geo_lat = row[Posts.geo_lat],
-            geo_long = row[Posts.geo_long],
-            likes_count = row[Posts.likes_count],
-            shares_count = row[Posts.shares_count],
-            comments_count = row[Posts.comments_count],
+            geoLat = row[Posts.geoLat],
+            geoLong = row[Posts.geoLong],
+            likesCount = row[Posts.likesCount],
+            sharesCount = row[Posts.sharesCount],
+            commentsCount = row[Posts.commentsCount],
             views = row[Posts.views]
         )
     }

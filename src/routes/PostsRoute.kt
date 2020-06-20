@@ -15,8 +15,6 @@ import io.ktor.sessions.get
 import io.ktor.sessions.sessions
 import com.example.auth.MySession
 import com.example.repository.Repository
-import io.ktor.http.ContentType
-import io.ktor.response.respondText
 
 const val POSTS = "$API_VERSION/posts"
 const val ALL_POSTS = "$POSTS/all"
@@ -127,10 +125,10 @@ fun Route.posts(db: Repository) {
             )
             val user = call.sessions.get<MySession>()?.let { db.findUser(it.userId) }
             if (user == null) {
-                call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Problems retrieving User"))
+                call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Problems retrieving com.example.model.User"))
                 return@delete
             }
-            if (user.userId != post.posted_by) {
+            if (user.userId != post.postedBy) {
                 call.respond(HttpStatusCode.Forbidden, mapOf("error" to "Forbidden"))
                 return@delete
             }
@@ -166,7 +164,7 @@ fun Route.posts(db: Repository) {
                 )
             val user = db.findUser(userId.toLong())
             if (user == null) {
-                call.respond(HttpStatusCode.BadRequest, mapOf("error" to "User not found"))
+                call.respond(HttpStatusCode.BadRequest, mapOf("error" to "com.example.model.User not found"))
                 return@post
             }
             val post = db.findPostById(postId.toLong())
@@ -195,7 +193,7 @@ fun Route.posts(db: Repository) {
                 )
             val user = db.findUser(userId.toLong())
             if (user == null) {
-                call.respond(HttpStatusCode.BadRequest, mapOf("error" to "User not found"))
+                call.respond(HttpStatusCode.BadRequest, mapOf("error" to "com.example.model.User not found"))
                 return@post
             }
             val post = db.findPostById(postId.toLong())

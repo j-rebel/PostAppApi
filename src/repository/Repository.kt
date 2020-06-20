@@ -1,6 +1,6 @@
 package com.example.repository
 
-import User
+import com.example.model.User
 import com.example.model.Like
 import com.example.model.Post
 import com.example.model.Share
