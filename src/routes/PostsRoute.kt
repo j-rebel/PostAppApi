@@ -15,6 +15,7 @@ import io.ktor.sessions.get
 import io.ktor.sessions.sessions
 import com.example.auth.MySession
 import com.example.repository.Repository
+import io.ktor.sessions.set
 
 const val POSTS = "$API_VERSION/posts"
 const val ALL_POSTS = "$POSTS/all"
@@ -223,15 +224,11 @@ fun Route.posts(db: Repository) {
         }
 
         get<AllPostRouteForApp> {
-            val user = call.sessions.get<MySession>()?.let { db.findUser(it.userId) }
-            if (user == null) {
-                call.respond(
-                    HttpStatusCode.BadRequest, mapOf("error" to "No user found")
-                )
-                return@get
+            val user = call.sessions.get<MySession>()?.let {
+                db.findUser(it.userId)
             }
             try {
-                val posts = db.getAllPostsForApp(user.userId)
+                val posts = db.getAllPostsForApp(user!!.userId)
                 call.respond(posts)
             } catch (e: Throwable) {
                 application.log.error("Failed to get Posts", e)
