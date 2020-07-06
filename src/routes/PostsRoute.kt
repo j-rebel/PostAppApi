@@ -228,7 +228,7 @@ fun Route.posts(db: Repository) {
                 db.findUser(it.userId)
             }
             try {
-                val posts = db.getAllPostsForApp(user!!.userId)
+                val posts = db.getAllPostsForApp(user?.userId)
                 call.respond(posts)
             } catch (e: Throwable) {
                 application.log.error("Failed to get Posts", e)

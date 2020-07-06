@@ -78,7 +78,7 @@ class PostRepository : Repository {
         }
     }
 
-    override suspend fun getAllPostsForApp(currentUserId: Long): List<PostResponse> {
+    override suspend fun getAllPostsForApp(currentUserId: Long?): List<PostResponse> {
         return dbQuery {
             Posts.update {
                 with(SqlExpressionBuilder) {
@@ -101,11 +101,17 @@ class PostRepository : Repository {
                     Posts.commentsCount,
                     Posts.sharesCount
                     )
-                .selectAll().mapNotNull { rowToPostResponse(it, currentUserId) }
+                .selectAll().mapNotNull {
+                    if (currentUserId != null) {
+                        rowToPostResponse(it, currentUserId)
+                    } else {
+                        rowToPostResponse(it, 0)
+                    }
+                }
         }
     }
 
-    suspend fun getPostForAppById(postId: Long, currentUserId: Long): PostResponse? {
+    suspend fun getPostForAppById(postId: Long, currentUserId: Long?): PostResponse? {
         return dbQuery {
             Posts.innerJoin(Users, {Posts.postedBy}, {Users.userId})
                 .slice(Posts.id,
@@ -124,7 +130,13 @@ class PostRepository : Repository {
                     Posts.sharesCount
                 )
                 .select { Posts.id.eq(postId) }
-                .map { rowToPostResponse(it, currentUserId) }.singleOrNull()
+                .map {
+                    if (currentUserId != null) {
+                        rowToPostResponse(it, currentUserId)
+                    } else {
+                        rowToPostResponse(it, 0)
+                    }
+                }.singleOrNull()
         }
     }
 
