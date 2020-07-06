@@ -1,9 +1,6 @@
 package com.example.repository
 
-import com.example.model.User
-import com.example.model.Like
-import com.example.model.Post
-import com.example.model.Share
+import com.example.model.*
 
 interface Repository {
     suspend fun addUser(
@@ -27,6 +24,7 @@ interface Repository {
     ): Post?
 
     suspend fun getAllPosts(): List<Post>
+    suspend fun getAllPostsForApp(): List<PostResponse>
     suspend fun getPostsByUser(userId: Long): List<Post>
     suspend fun findPostById(postId: Long): Post?
     suspend fun deletePost(postId: Long)

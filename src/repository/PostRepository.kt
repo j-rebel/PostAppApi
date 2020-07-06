@@ -1,10 +1,9 @@
 package com.example.repository
 
-import com.example.model.User
-import com.example.model.Like
-import com.example.model.Post
-import com.example.model.Share
+import com.example.model.*
 import com.example.repository.DatabaseFactory.dbQuery
+import javafx.application.Application.launch
+import kotlinx.coroutines.runBlocking
 import org.jetbrains.exposed.sql.*
 import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.statements.InsertStatement
@@ -81,6 +80,56 @@ class PostRepository : Repository {
         }
     }
 
+    override suspend fun getAllPostsForApp(): List<PostResponse> {
+        return dbQuery {
+            Posts.update {
+                with(SqlExpressionBuilder) {
+                    it.update(Posts.views, Posts.views + 1)
+                }
+            }
+            Posts.innerJoin(Users, {Posts.postedBy}, {Users.userId})
+                .slice(Posts.id,
+                    Users.displayName,
+                    Users.avatar,
+                    Posts.date,
+                    Posts.type,
+                    Posts.repost,
+                    Posts.text,
+                    Posts.video,
+                    Posts.address,
+                    Posts.geoLong,
+                    Posts.geoLat,
+                    Posts.likesCount,
+                    Posts.commentsCount,
+                    Posts.sharesCount
+                    )
+                .selectAll().mapNotNull { rowToPostResponse(it) }
+        }
+    }
+
+    suspend fun getPostForAppById(postId: Long): PostResponse? {
+        return dbQuery {
+            Posts.innerJoin(Users, {Posts.postedBy}, {Users.userId})
+                .slice(Posts.id,
+                    Users.displayName,
+                    Users.avatar,
+                    Posts.date,
+                    Posts.type,
+                    Posts.repost,
+                    Posts.text,
+                    Posts.video,
+                    Posts.address,
+                    Posts.geoLong,
+                    Posts.geoLat,
+                    Posts.likesCount,
+                    Posts.commentsCount,
+                    Posts.sharesCount
+                )
+                .select { Posts.id.eq(postId) }
+                .map { rowToPostResponse(it) }.singleOrNull()
+        }
+    }
+
     override suspend fun getPostsByUser(userId: Long): List<Post> {
 
         return dbQuery {
@@ -94,6 +143,8 @@ class PostRepository : Repository {
             }.mapNotNull { rowToPost(it) }
         }
     }
+
+
 
     override suspend fun findPostById(postId: Long): Post? {
         return dbQuery {
@@ -224,6 +275,47 @@ class PostRepository : Repository {
             sharesCount = row[Posts.sharesCount],
             commentsCount = row[Posts.commentsCount],
             views = row[Posts.views]
+        )
+    }
+
+    private fun rowToPostResponse(row: ResultRow?): PostResponse? {
+        if (row == null) {
+            return null
+        }
+        return PostResponse(
+            id = row[Posts.id],
+            posterName = row[Users.displayName],
+            posterAvatar = row[Users.avatar],
+            date = row[Posts.date],
+            type = PostType.valueOf(row[Posts.type].toString()),
+            repost = runBlocking {getPostForAppById(row[Posts.repost])},
+            text = row[Posts.text],
+            video = row[Posts.video],
+            address = row[Posts.address],
+            geo = Pair(row[Posts.geoLat].toDouble(), row[Posts.geoLong].toDouble()),
+            likes = row[Posts.likesCount],
+            comments = row[Posts.commentsCount],
+            shares = row[Posts.sharesCount],
+            isLiked = row[Posts.commentsCount] > 0,
+            isCommented = row[Posts.commentsCount] > 0,
+            isShared = row[Posts.commentsCount] > 0
+
+        /*val id: Long,
+                val posterName: String,
+                val posterAvatar: Int,
+                val date: Long,
+                val type: PostType,
+                val repost: Post?,
+                val text: String,
+                val video: String?,
+                val address: String?,
+                val geo: Pair<Double, Double>?,
+                val likes: Int,
+                val comments: Int,
+                val shares: Int,
+                val isLiked: Boolean = false,
+                val isCommented: Boolean = false,
+                val isShared: Boolean = false*/
         )
     }
 }

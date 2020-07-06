@@ -18,6 +18,7 @@ import com.example.repository.Repository
 
 const val POSTS = "$API_VERSION/posts"
 const val ALL_POSTS = "$POSTS/all"
+const val ALL_POSTS_FOR_APP = "$POSTS/all-app"
 const val POST_LIKE = "$POSTS/like"
 const val POST_SHARE = "$POSTS/share"
 
@@ -28,6 +29,10 @@ class PostRoute
 @KtorExperimentalLocationsAPI
 @Location(ALL_POSTS)
 class AllPostRoute
+
+@KtorExperimentalLocationsAPI
+@Location(ALL_POSTS_FOR_APP)
+class AllPostRouteForApp
 
 @KtorExperimentalLocationsAPI
 @Location(POST_LIKE)
@@ -210,6 +215,16 @@ fun Route.posts(db: Repository) {
         get<AllPostRoute> {
             try {
                 val posts = db.getAllPosts()
+                call.respond(posts)
+            } catch (e: Throwable) {
+                application.log.error("Failed to get Posts", e)
+                call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Problems getting Posts"))
+            }
+        }
+
+        get<AllPostRouteForApp> {
+            try {
+                val posts = db.getAllPostsForApp()
                 call.respond(posts)
             } catch (e: Throwable) {
                 application.log.error("Failed to get Posts", e)
