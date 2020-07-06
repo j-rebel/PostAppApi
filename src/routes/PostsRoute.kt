@@ -238,17 +238,17 @@ fun Route.posts(db: Repository) {
 
         post<PostLikeRoute> {
             val postsParameters = call.receive<Parameters>()
-            val userId = postsParameters["user"]
-                ?: return@post call.respond(
-                    HttpStatusCode.BadRequest, mapOf("error" to "Missing user")
-                )
             val postId = postsParameters["post"]
                 ?: return@post call.respond(
                     HttpStatusCode.BadRequest, mapOf("error" to "Missing post")
                 )
-            val user = db.findUser(userId.toLong())
+            val user = call.sessions.get<MySession>()?.let {
+                db.findUser(it.userId)
+            }
             if (user == null) {
-                call.respond(HttpStatusCode.BadRequest, mapOf("error" to "com.example.model.User not found"))
+                call.respond(
+                    HttpStatusCode.BadRequest, mapOf("error" to "No user data sent")
+                )
                 return@post
             }
             val post = db.findPostById(postId.toLong())
