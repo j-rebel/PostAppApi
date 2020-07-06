@@ -78,7 +78,7 @@ class PostRepository : Repository {
         }
     }
 
-    override suspend fun getAllPostsForApp(): List<PostResponse> {
+    override suspend fun getAllPostsForApp(currentUserId: Long): List<PostResponse> {
         return dbQuery {
             Posts.update {
                 with(SqlExpressionBuilder) {
@@ -101,11 +101,11 @@ class PostRepository : Repository {
                     Posts.commentsCount,
                     Posts.sharesCount
                     )
-                .selectAll().mapNotNull { rowToPostResponse(it) }
+                .selectAll().mapNotNull { rowToPostResponse(it, currentUserId) }
         }
     }
 
-    suspend fun getPostForAppById(postId: Long): PostResponse? {
+    suspend fun getPostForAppById(postId: Long, currentUserId: Long): PostResponse? {
         return dbQuery {
             Posts.innerJoin(Users, {Posts.postedBy}, {Users.userId})
                 .slice(Posts.id,
@@ -124,7 +124,7 @@ class PostRepository : Repository {
                     Posts.sharesCount
                 )
                 .select { Posts.id.eq(postId) }
-                .map { rowToPostResponse(it) }.singleOrNull()
+                .map { rowToPostResponse(it, currentUserId) }.singleOrNull()
         }
     }
 
@@ -180,6 +180,22 @@ class PostRepository : Repository {
                 it[Posts.geoLat] = geo_lat
             }
         }
+    }
+
+    suspend fun checkLiked(userId: Long, postId: Long): Boolean {
+        val check = dbQuery {
+            Likes.select { Likes.uId.eq("$userId:$postId") }
+                .map { rowToLike(it) }.singleOrNull()
+        }
+        return check != null
+    }
+
+    suspend fun checkShared(userId: Long, postId: Long): Boolean {
+        val check = dbQuery {
+            Shares.select { Shares.uId.eq("$userId:$postId") }
+                .map { rowToShare(it) }.singleOrNull()
+        }
+        return check != null
     }
 
     override suspend fun addLike(userId: Long, postId: Long): Like? {
@@ -276,7 +292,7 @@ class PostRepository : Repository {
         )
     }
 
-    private fun rowToPostResponse(row: ResultRow?): PostResponse? {
+    private fun rowToPostResponse(row: ResultRow?, currentUserId: Long): PostResponse? {
         if (row == null) {
             return null
         }
@@ -286,7 +302,7 @@ class PostRepository : Repository {
             posterAvatar = row[Users.avatar],
             date = row[Posts.date],
             type = PostType.valueOf(row[Posts.type].toString()),
-            repost = runBlocking {getPostForAppById(row[Posts.repost])},
+            repost = runBlocking {getPostForAppById(row[Posts.repost], currentUserId)},
             text = row[Posts.text],
             video = row[Posts.video],
             address = row[Posts.address],
@@ -294,9 +310,9 @@ class PostRepository : Repository {
             likes = row[Posts.likesCount],
             comments = row[Posts.commentsCount],
             shares = row[Posts.sharesCount],
-            isLiked = row[Posts.likesCount] > 0,
-            isCommented = row[Posts.commentsCount] > 0,
-            isShared = row[Posts.sharesCount] > 0
+            isLiked = runBlocking {checkLiked(currentUserId, row[Posts.id])},
+            isCommented = false,
+            isShared = runBlocking {checkShared(currentUserId, row[Posts.id])}
 
         /*val id: Long,
                 val posterName: String,
