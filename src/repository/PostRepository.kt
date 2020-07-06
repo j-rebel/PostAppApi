@@ -78,7 +78,7 @@ class PostRepository : Repository {
         }
     }
 
-    override suspend fun getAllPostsForApp(currentUserId: Long): List<PostResponse> {
+    override suspend fun getAllPostsForApp(currentUserId: Long?): List<PostResponse> {
         return dbQuery {
             Posts.update {
                 with(SqlExpressionBuilder) {
@@ -292,9 +292,13 @@ class PostRepository : Repository {
         )
     }
 
-    private fun rowToPostResponse(row: ResultRow?, currentUserId: Long): PostResponse? {
+    private fun rowToPostResponse(row: ResultRow?, currentUserId: Long?): PostResponse? {
+        var userId: Long = 0
         if (row == null) {
             return null
+        }
+        if (currentUserId != null) {
+            userId = currentUserId
         }
         return PostResponse(
             id = row[Posts.id],
@@ -302,7 +306,7 @@ class PostRepository : Repository {
             posterAvatar = row[Users.avatar],
             date = row[Posts.date],
             type = PostType.valueOf(row[Posts.type].toString()),
-            repost = runBlocking {getPostForAppById(row[Posts.repost], currentUserId)},
+            repost = runBlocking {getPostForAppById(row[Posts.repost], userId)},
             text = row[Posts.text],
             video = row[Posts.video],
             address = row[Posts.address],
@@ -310,9 +314,9 @@ class PostRepository : Repository {
             likes = row[Posts.likesCount],
             comments = row[Posts.commentsCount],
             shares = row[Posts.sharesCount],
-            isLiked = runBlocking {checkLiked(currentUserId, row[Posts.id])},
+            isLiked = runBlocking {checkLiked(userId, row[Posts.id])},
             isCommented = false,
-            isShared = runBlocking {checkShared(currentUserId, row[Posts.id])}
+            isShared = runBlocking {checkShared(userId, row[Posts.id])}
 
         /*val id: Long,
                 val posterName: String,
