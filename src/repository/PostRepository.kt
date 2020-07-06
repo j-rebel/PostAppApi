@@ -294,9 +294,9 @@ class PostRepository : Repository {
             likes = row[Posts.likesCount],
             comments = row[Posts.commentsCount],
             shares = row[Posts.sharesCount],
-            isLiked = row[Posts.commentsCount] > 0,
+            isLiked = row[Posts.likesCount] > 0,
             isCommented = row[Posts.commentsCount] > 0,
-            isShared = row[Posts.commentsCount] > 0
+            isShared = row[Posts.sharesCount] > 0
 
         /*val id: Long,
                 val posterName: String,
