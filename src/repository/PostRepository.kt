@@ -2,10 +2,8 @@ package com.example.repository
 
 import com.example.model.*
 import com.example.repository.DatabaseFactory.dbQuery
-import javafx.application.Application.launch
 import kotlinx.coroutines.runBlocking
 import org.jetbrains.exposed.sql.*
-import org.jetbrains.exposed.sql.SqlExpressionBuilder.eq
 import org.jetbrains.exposed.sql.statements.InsertStatement
 import java.util.*
 
