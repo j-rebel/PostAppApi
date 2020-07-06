@@ -224,8 +224,10 @@ fun Route.posts(db: Repository) {
 
         get<AllPostRouteForApp> {
             try {
-                val posts = db.getAllPostsForApp(call.sessions.get<MySession>()?.userId)
-                call.respond(posts)
+                val posts = call.sessions.get<MySession>()?.userId?.let { it1 -> db.getAllPostsForApp(it1) }
+                if (posts != null) {
+                    call.respond(posts)
+                }
             } catch (e: Throwable) {
                 application.log.error("Failed to get Posts", e)
                 call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Problems getting Posts"))
