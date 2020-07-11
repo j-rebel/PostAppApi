@@ -101,7 +101,7 @@ class PostRepository : Repository {
                     Posts.commentsCount,
                     Posts.sharesCount
                     )
-                .selectAll().mapNotNull {
+                .selectAll().limit(3).orderBy(Posts.id to SortOrder.DESC).mapNotNull {
                     if (currentUserId != null) {
                         rowToPostResponse(it, currentUserId)
                     } else {
@@ -153,8 +153,6 @@ class PostRepository : Repository {
             }.mapNotNull { rowToPost(it) }
         }
     }
-
-
 
     override suspend fun findPostById(postId: Long): Post? {
         return dbQuery {
