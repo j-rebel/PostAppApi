@@ -131,7 +131,7 @@ fun Route.posts(db: Repository) {
                 ?: return@delete call.respond(
                 HttpStatusCode.NotFound, mapOf("error" to "Missing Post")
             )
-            val user = call.sessions.get<MySession>()?.let { db.findUser(it.userId) }
+            val user = call.authentication.principal<User>()
             if (user == null) {
                 call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Problems retrieving user"))
                 return@delete
@@ -189,9 +189,7 @@ fun Route.posts(db: Repository) {
                 ?: return@patch call.respond(
                     HttpStatusCode.BadRequest, mapOf("error" to "Missing latitude")
                 )
-            val user = call.sessions.get<MySession>()?.let {
-                db.findUser(it.userId)
-            }
+            val user = call.authentication.principal<User>()
             if (user == null) {
                 call.respond(
                     HttpStatusCode.BadRequest, mapOf("error" to "No user data sent")
@@ -226,11 +224,15 @@ fun Route.posts(db: Repository) {
         }
 
         get<AllPostRouteForApp> {
-            val user = call.sessions.get<MySession>()?.let {
-                db.findUser(it.userId)
+            val user = call.authentication.principal<User>()
+            if (user == null) {
+                call.respond(
+                    HttpStatusCode.BadRequest, mapOf("error" to "No user data sent")
+                )
+                return@get
             }
             try {
-                val posts = db.getAllPostsForApp(user?.userId)
+                val posts = db.getAllPostsForApp(user.userId)
                 call.respond(posts)
             } catch (e: Throwable) {
                 application.log.error("Failed to get Posts", e)
@@ -244,9 +246,7 @@ fun Route.posts(db: Repository) {
                 ?: return@post call.respond(
                     HttpStatusCode.BadRequest, mapOf("error" to "Missing post")
                 )
-            val user = call.sessions.get<MySession>()?.let {
-                db.findUser(it.userId)
-            }
+            val user = call.authentication.principal<User>()
             if (user == null) {
                 call.respond(
                     HttpStatusCode.BadRequest, mapOf("error" to "No user data sent")
@@ -269,17 +269,13 @@ fun Route.posts(db: Repository) {
 
         post<PostShareRoute> {
             val postsParameters = call.receive<Parameters>()
-            val userId = postsParameters["user"]
-                ?: return@post call.respond(
-                    HttpStatusCode.BadRequest, mapOf("error" to "Missing user")
-                )
             val postId = postsParameters["post"]
                 ?: return@post call.respond(
                     HttpStatusCode.BadRequest, mapOf("error" to "Missing post")
                 )
-            val user = db.findUser(userId.toLong())
+            val user = call.authentication.principal<User>()
             if (user == null) {
-                call.respond(HttpStatusCode.BadRequest, mapOf("error" to "com.example.model.User not found"))
+                call.respond(HttpStatusCode.BadRequest, mapOf("error" to "User not found"))
                 return@post
             }
             val post = db.findPostById(postId.toLong())
