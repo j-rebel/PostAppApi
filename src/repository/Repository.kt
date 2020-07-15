@@ -44,7 +44,8 @@ interface Repository {
     ): Like?
     suspend fun addShare(
         userId: Long,
-        postId: Long
+        postId: Long,
+        text: String
     ): Share?
 }
 

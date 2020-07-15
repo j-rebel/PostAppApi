@@ -244,7 +244,7 @@ class PostRepository : Repository {
         return null
     }
 
-    override suspend fun addShare(userId: Long, postId: Long): Share? {
+    override suspend fun addShare(userId: Long, postId: Long, text: String): Share? {
         val check = dbQuery {
             Shares.select { Shares.uId.eq("$userId:$postId") }
                 .map { rowToShare(it) }.singleOrNull()
@@ -263,6 +263,21 @@ class PostRepository : Repository {
                     share[Shares.postId] = postId
                     share[Shares.uId] = "$userId:$postId"
                 }
+                Posts.insert {
+                    it[Posts.postedBy] = userId
+                    it[Posts.date] = Date().time
+                    it[Posts.type] = "REPOST"
+                    it[Posts.repost] = postId
+                    it[Posts.text] = text
+                    it[Posts.video] = "none"
+                    it[Posts.address] = "none"
+                    it[Posts.geoLong] = 0F
+                    it[Posts.geoLat] = 0F
+                    it[Posts.likesCount] = 0
+                    it[Posts.sharesCount] = 0
+                    it[Posts.commentsCount] = 0
+                    it[Posts.views] = 0
+                }
             }
             return rowToShare(statement?.resultedValues?.get(0))
         } else {
@@ -274,6 +289,10 @@ class PostRepository : Repository {
                 }
                 Likes.deleteWhere {
                     Shares.uId.eq("$userId:$postId")
+                }
+                Posts.deleteWhere {
+                    Posts.repost.eq(postId)
+                    Posts.postedBy.eq(userId)
                 }
             }
         }

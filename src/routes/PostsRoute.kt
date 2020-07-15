@@ -271,6 +271,10 @@ fun Route.posts(db: Repository) {
                 ?: return@post call.respond(
                     HttpStatusCode.BadRequest, mapOf("error" to "Missing post")
                 )
+            val repostText = postsParameters["text"]
+                ?: return@post call.respond(
+                    HttpStatusCode.BadRequest, mapOf("error" to "Missing text")
+                )
             val user = call.authentication.principal<User>()
             if (user == null) {
                 call.respond(HttpStatusCode.BadRequest, mapOf("error" to "User not found"))
@@ -282,7 +286,7 @@ fun Route.posts(db: Repository) {
                 return@post
             }
             try {
-                db.addShare(user.userId, post.id)
+                db.addShare(user.userId, post.id, repostText)
                 call.respond(HttpStatusCode.OK)
             } catch (e: Throwable) {
                 application.log.error("Failed to process", e)
