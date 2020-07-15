@@ -287,7 +287,7 @@ class PostRepository : Repository {
                         it.update(Posts.sharesCount, Posts.sharesCount - 1)
                     }
                 }
-                Likes.deleteWhere {
+                Shares.deleteWhere {
                     Shares.uId.eq("$userId:$postId")
                 }
                 Posts.deleteWhere {
