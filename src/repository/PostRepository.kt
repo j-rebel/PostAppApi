@@ -291,8 +291,8 @@ class PostRepository : Repository {
                     Shares.uId.eq("$userId:$postId")
                 }
                 Posts.deleteWhere {
-                    Posts.repost.eq(postId)
-                    Posts.postedBy.eq(userId)
+                    (Posts.repost.eq(postId)) and
+                    (Posts.postedBy.eq(userId))
                 }
             }
         }
