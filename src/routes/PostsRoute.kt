@@ -79,9 +79,7 @@ fun Route.posts(db: Repository) {
                 ?: return@post call.respond(
                     HttpStatusCode.BadRequest, mapOf("error" to "Missing latitude")
                 )
-            val user = call.sessions.get<MySession>()?.let {
-                db.findUser(it.userId)
-            }
+            val user = call.authentication.principal<User>()
             if (user == null) {
                 call.respond(
                     HttpStatusCode.BadRequest, mapOf("error" to "No user data sent")
