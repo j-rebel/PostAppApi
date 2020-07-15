@@ -290,7 +290,7 @@ fun Route.posts(db: Repository) {
                 call.respond(HttpStatusCode.OK)
             } catch (e: Throwable) {
                 application.log.error("Failed to process", e)
-                call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Failed to process"))
+                call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Failed to process $e"))
             }
         }
     }
