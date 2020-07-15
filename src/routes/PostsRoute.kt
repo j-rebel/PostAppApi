@@ -14,7 +14,9 @@ import io.ktor.routing.Route
 import io.ktor.sessions.get
 import io.ktor.sessions.sessions
 import com.example.auth.MySession
+import com.example.model.User
 import com.example.repository.Repository
+import io.ktor.auth.authentication
 import io.ktor.sessions.set
 
 const val POSTS = "$API_VERSION/posts"
@@ -102,7 +104,7 @@ fun Route.posts(db: Repository) {
         }
 
         get<PostRoute> {
-            val user = call.sessions.get<MySession>()?.let { db.findUser(it.userId) }
+            val user = call.authentication.principal<User>()
             if (user == null) {
                 call.respond(
                     HttpStatusCode.BadRequest, mapOf("error" to "No user data sent")
