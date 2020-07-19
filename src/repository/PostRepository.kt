@@ -111,6 +111,72 @@ class PostRepository : Repository {
         }
     }
 
+    override suspend fun getNewerPostsForApp(currentUserId: Long?, topPostId: Long): List<PostResponse> {
+        return dbQuery {
+            Posts.update {
+                with(SqlExpressionBuilder) {
+                    it.update(Posts.views, Posts.views + 1)
+                }
+            }
+            Posts.innerJoin(Users, {Posts.postedBy}, {Users.userId})
+                .slice(Posts.id,
+                    Users.displayName,
+                    Users.avatar,
+                    Posts.date,
+                    Posts.type,
+                    Posts.repost,
+                    Posts.text,
+                    Posts.video,
+                    Posts.address,
+                    Posts.geoLong,
+                    Posts.geoLat,
+                    Posts.likesCount,
+                    Posts.commentsCount,
+                    Posts.sharesCount
+                )
+                .select {Posts.id.greater(topPostId)} .limit(1).orderBy(Posts.id to SortOrder.ASC).mapNotNull {
+                    if (currentUserId != null) {
+                        rowToPostResponse(it, currentUserId)
+                    } else {
+                        rowToPostResponse(it, 0)
+                    }
+                }
+        }
+    }
+
+    override suspend fun getOlderPostsForApp(currentUserId: Long?, lastPostId: Long): List<PostResponse> {
+        return dbQuery {
+            Posts.update {
+                with(SqlExpressionBuilder) {
+                    it.update(Posts.views, Posts.views + 1)
+                }
+            }
+            Posts.innerJoin(Users, {Posts.postedBy}, {Users.userId})
+                .slice(Posts.id,
+                    Users.displayName,
+                    Users.avatar,
+                    Posts.date,
+                    Posts.type,
+                    Posts.repost,
+                    Posts.text,
+                    Posts.video,
+                    Posts.address,
+                    Posts.geoLong,
+                    Posts.geoLat,
+                    Posts.likesCount,
+                    Posts.commentsCount,
+                    Posts.sharesCount
+                )
+                .select{Posts.id.less(lastPostId)}.limit(1).orderBy(Posts.id to SortOrder.DESC).mapNotNull {
+                    if (currentUserId != null) {
+                        rowToPostResponse(it, currentUserId)
+                    } else {
+                        rowToPostResponse(it, 0)
+                    }
+                }
+        }
+    }
+
     suspend fun getPostForAppById(postId: Long, currentUserId: Long?): PostResponse? {
         return dbQuery {
             Posts.innerJoin(Users, {Posts.postedBy}, {Users.userId})

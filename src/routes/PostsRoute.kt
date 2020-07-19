@@ -22,6 +22,8 @@ import io.ktor.sessions.set
 const val POSTS = "$API_VERSION/posts"
 const val ALL_POSTS = "$POSTS/all"
 const val ALL_POSTS_FOR_APP = "$POSTS/all-app"
+const val ALL_POSTS_FOR_APP_NEW = "$POSTS/all-app-new"
+const val ALL_POSTS_FOR_APP_OLD = "$POSTS/all-app-old"
 const val POST_LIKE = "$POSTS/like"
 const val POST_SHARE = "$POSTS/share"
 
@@ -36,6 +38,14 @@ class AllPostRoute
 @KtorExperimentalLocationsAPI
 @Location(ALL_POSTS_FOR_APP)
 class AllPostRouteForApp
+
+@KtorExperimentalLocationsAPI
+@Location(ALL_POSTS_FOR_APP_NEW)
+class AllPostRouteForAppNew
+
+@KtorExperimentalLocationsAPI
+@Location(ALL_POSTS_FOR_APP_OLD)
+class AllPostRouteForAppOld
 
 @KtorExperimentalLocationsAPI
 @Location(POST_LIKE)
@@ -231,6 +241,50 @@ fun Route.posts(db: Repository) {
             }
             try {
                 val posts = db.getAllPostsForApp(user.userId)
+                call.respond(posts)
+            } catch (e: Throwable) {
+                application.log.error("Failed to get Posts", e)
+                call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Problems getting Posts"))
+            }
+        }
+
+        get<AllPostRouteForAppOld> {
+            val postsParameters = call.receive<Parameters>()
+            val postId = postsParameters["id"]
+                ?: return@get call.respond(
+                    HttpStatusCode.BadRequest, mapOf("error" to "Missing Post Id")
+                )
+            val user = call.authentication.principal<User>()
+            if (user == null) {
+                call.respond(
+                    HttpStatusCode.BadRequest, mapOf("error" to "No user data sent")
+                )
+                return@get
+            }
+            try {
+                val posts = db.getOlderPostsForApp(user.userId, postId.toLong())
+                call.respond(posts)
+            } catch (e: Throwable) {
+                application.log.error("Failed to get Posts", e)
+                call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Problems getting Posts"))
+            }
+        }
+
+        get<AllPostRouteForAppNew> {
+            val postsParameters = call.receive<Parameters>()
+            val postId = postsParameters["id"]
+                ?: return@get call.respond(
+                    HttpStatusCode.BadRequest, mapOf("error" to "Missing Post Id")
+                )
+            val user = call.authentication.principal<User>()
+            if (user == null) {
+                call.respond(
+                    HttpStatusCode.BadRequest, mapOf("error" to "No user data sent")
+                )
+                return@get
+            }
+            try {
+                val posts = db.getNewerPostsForApp(user.userId, postId.toLong())
                 call.respond(posts)
             } catch (e: Throwable) {
                 application.log.error("Failed to get Posts", e)

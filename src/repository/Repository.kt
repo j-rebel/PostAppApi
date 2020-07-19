@@ -25,6 +25,8 @@ interface Repository {
 
     suspend fun getAllPosts(): List<Post>
     suspend fun getAllPostsForApp(currentUserId: Long?): List<PostResponse>
+    suspend fun getNewerPostsForApp(currentUserId: Long?, topPostId: Long): List<PostResponse>
+    suspend fun getOlderPostsForApp(currentUserId: Long?, lastPostId: Long): List<PostResponse>
     suspend fun getPostsByUser(userId: Long): List<Post>
     suspend fun findPostById(postId: Long): Post?
     suspend fun deletePost(postId: Long)
